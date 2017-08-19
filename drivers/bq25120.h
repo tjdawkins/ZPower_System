@@ -17,6 +17,12 @@
 //TODO: More
 
 
+// Define Register Masks
+#define REG_STATUS_STAT1 0b10000000
+#define REG_STATUS_STAT2 0b01000000
+
+
+
 
 
 #endif /* DRIVERS_BQ25120_H_ */
