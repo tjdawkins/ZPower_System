@@ -15,30 +15,30 @@
 #define BQ25120_NUM_REGS 12
 
 // Define Memory Addresses
-#define ADDR_STATUS_SHIP_MODE 0x00
-#define ADDR_FAULTS 0x01
-#define ADDR_TSCTRL 0x02
-#define ADDR_FASTCHGCTRL 0x03
-#define ADDR_TERMPRECHG_I2C 0x04
-#define ADDR_BATTVOLTAGE 0x05
-#define ADDR_SYSVOUT 0x06
-#define ADDR_LSLDO 0x07
-#define ADDR_PUSHBUTTON 0x08
-#define ADDR_ILIM_BATTUVLO 0x09
-#define ADDR_BATTMON 0x0A
-#define ADDR_VINDPM 0x0B
+#define ADDR_STATUS_SHIP_MODE   0x00
+#define ADDR_FAULT              0x01
+#define ADDR_TSCTRL             0x02
+#define ADDR_FASTCHGCTRL        0x03
+#define ADDR_TERMPRECHG_I2C     0x04
+#define ADDR_BATTVOLTAGE        0x05
+#define ADDR_SYSVOUT            0x06
+#define ADDR_LSLDO              0x07
+#define ADDR_PUSHBUTTON         0x08
+#define ADDR_ILIM_BATTUVLO      0x09
+#define ADDR_BATTMON            0x0A
+#define ADDR_VINDPM             0x0B
 //TODO: More
 
 
 // Faults / Fault Masks
-#define FAULT_VIN_OV        0x80
-#define FAULT_VIN_UV        0x40
-#define FAULT_BAT_UVLO      0x20
-#define FAULT_BAT_OCP       0x10
-#define FAULT_VIN_OV_M      0x08
-#define FAULT_VIN_UV_M      0x04
-#define FAULT_BAT_UVLO_M    0x02
-#define FAULT_BAT_OCP_M     0x01
+#define FAULT_VIN_OV            0x80
+#define FAULT_VIN_UV            0x40
+#define FAULT_BAT_UVLO          0x20
+#define FAULT_BAT_OCP           0x10
+#define FAULT_VIN_OV_M          0x08
+#define FAULT_VIN_UV_M          0x04
+#define FAULT_BAT_UVLO_M        0x02
+#define FAULT_BAT_OCP_M         0x01
 
 /*
  * Fast Charge Control Register
@@ -57,9 +57,103 @@
 #define FC_HIGHZ_ENABLE    0x01
 #define FC_HIGHZ_DISABLE   0x00
 
+/*
+ * Termination/Precharge and I2C Regs
+ * TERM_RANGE = 0:
+ * ITERM = 500 uA + ITERM_CODE * 500 uA
+ * ICHRG_RANGE = 1:
+ * ICHRG = 6 mA + ICHRG_CODE * 1 mA
+ *
+ * Packet Data:
+ * FC_ICHRG_RANG | FC_ICHR_CODE | FC_CHRG_X | FC_HIGHZ_X
+ */
+#define ITERM_ICHRG_RANGE     0x00 // Range 1
+#define ITERM_ICHRG_CODE      0x20 // 500 uA + 4mA (Zpower 4.5 mA)
+#define ITERM_TERM_ENABLE     0x02
+#define ITERM_TERM_DISABLE    0x00
+#define ITERM_BIT_0           0x00
+
+/*
+ *  Battery Regulation
+ *
+ *  VBATREG = 3.6V + VBREG_CODE * 10 mV
+ */
+#define VBREG_CODE              0x08 // 3.6 V + 40 mV (ZPower 4V)
+
+/*
+ * SYS Vout Control Registers
+ *
+ * SYS_SEL: 00 (1.1 V - 1.2 V)
+ *          01 (1.3 V - 2.8 V) => 1.3 V + SYS_VOUT_CODE * 100 mV
+ *          11 (1.8 V - 3.3 V) => 1.8 V + SYS_VOUT_CODE * 100 mV
+ *
+ * SYS_VOUT_CODE B4:B1
+ *
+ */
+#define SYS_VOUT_ENABLE     0x80
+#define SYS_VOUT_DISABLE    0x00
+#define SYS_VOUT_SEL        0x60 // 1.8 V
+#define SYS_VOUT_CODE       0x1D // 1.8 V + 1.5 V = 3.3 V
+
+/*
+ *  Load Switch and LDO Control Register
+ *
+ *  EN_LS_LDO       7       Enable
+ *  LS_LDO_V        6:2     Voltage
+ *      VLSLDO = 0.8 V + LS_LDOCODE * 100 mV
+ *      VLSLDO > 3.3 => passthrough: VLSLDO = VINLS - VDROPOUT
+ *      NOTE: To change VLSLDO LSCTRL and EN_LS_LDO must be disabled
+ *
+ *  Unused          1       0
+ *  MRRESET_VIN     0
+ */
+
+#define LSLDO_ENABLE        0x80
+#define LSLDO_DISABLE       0x00
+#define LSLDO_CODE          0x7A // Default change if necessary
+#define LSLDO_MR_VIN        0x00 // TODO: Use this function?
+
+/*
+ * Push Button Control Register
+ */
 
 
 
+/*
+ * INLIM and Battery UVLO Control Register
+ *
+ * INLIMBUVLO_x
+ *
+ * RESET        7   Write 1 to reset all registers to default
+ * N/A          6   Not used
+ * INLIM_x      5:3 Input Current LImit setting
+ *                  INLIM = 50 mA + INLIM_CODE * 50mA
+ *
+ * BUVLO_x      2:0 000,001,010 = 3V
+ *                  011         = 2.8 V
+ *                  100         = 2.6 V
+ *                  101         = 2.4 V
+ *                  110         = 2.2 V
+ *                  111         = Disabled
+ */
+
+#define INLIMBUVLO_RESET    0x00
+#define INLIMBUVLO_INLIM    0x08 // 50 mA default
+#define INLIMBUBLO_BUVLO    0x02 // 3V default
+
+/*
+ * Voltage Based Battery Monitor
+ * VBMOM_x
+ *
+ * VBMON_READ       Write 1 to initiate a read
+ *                  See data sheet Table 23
+ */
+
+
+
+/*
+ * VIN_DPM and Timers
+ */
 
 
 #endif /* DRIVERS_BQ25120_H_ */
