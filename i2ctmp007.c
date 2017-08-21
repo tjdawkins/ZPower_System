@@ -41,6 +41,7 @@
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/I2C.h>
 #include <ti/display/Display.h>
+#include <drivers/bq25120.h>
 
 /* Example/Board Header files */
 #include "Board.h"
@@ -58,9 +59,9 @@ static Display_Handle display;
 void *mainThread(void *arg0)
 {
     unsigned int    i;
-    uint16_t        temperature;
+    uint8_t         reg[BQ25120_NUM_REGS];
     uint8_t         txBuffer[1];
-    uint8_t         rxBuffer[2];
+    uint8_t         rxBuffer[1];
     I2C_Handle      i2c;
     I2C_Params      i2cParams;
     I2C_Transaction i2cTransaction;
@@ -83,6 +84,7 @@ void *mainThread(void *arg0)
     /* Create I2C for usage */
     I2C_Params_init(&i2cParams);
     i2cParams.bitRate = I2C_400kHz;
+
     i2c = I2C_open(Board_I2C_TMP, &i2cParams);
     if (i2c == NULL) {
         Display_printf(display, 0, 0, "Error Initializing I2C\n");
@@ -93,38 +95,26 @@ void *mainThread(void *arg0)
     }
 
     /* Point to the T ambient register and read its 2 bytes */
-    txBuffer[0] = TMP007_OBJ_TEMP;
-    i2cTransaction.slaveAddress = Board_TMP_ADDR;
+    txBuffer[0] = 0x00;
+    i2cTransaction.slaveAddress = BQ25120_I2C_ADDR;
     i2cTransaction.writeBuf = txBuffer;
     i2cTransaction.writeCount = 1;
     i2cTransaction.readBuf = rxBuffer;
-    i2cTransaction.readCount = 2;
+    i2cTransaction.readCount = 1;
 
     /* Take 20 samples and print them out onto the console */
-    for (i = 0; i < 20; i++) {
+    for (i = 0; i < BQ25120_NUM_REGS; i++) {
         if (I2C_transfer(i2c, &i2cTransaction)) {
             /* Extract degrees C from the received data; see TMP102 datasheet */
-            temperature = (rxBuffer[0] << 6) | (rxBuffer[1] >> 2);
+            reg[i] = rxBuffer[0];
+            Display_printf(display, 0, 0, "Register 0x%02x: 0x%02x\n", i, reg[i]);
 
-            /*
-             * If the MSB is set '1', then we have a 2's complement
-             * negative value which needs to be sign extended
-             */
-            if (rxBuffer[0] & 0x80) {
-                temperature |= 0xF000;
-            }
-           /*
-            * For simplicity, divide the temperature value by 32 to get rid of
-            * the decimal precision; see TI's TMP007 datasheet
-            */
-            temperature /= 32;
-
-            Display_printf(display, 0, 0, "Sample %u: %d (C)\n", i, temperature);
         }
         else {
             Display_printf(display, 0, 0, "I2C Bus fault\n");
         }
 
+        txBuffer[0]++;
         /* Sleep for 1 second */
         sleep(1);
     }
