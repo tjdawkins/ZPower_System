@@ -134,7 +134,7 @@ void *mainThread(void *arg0)
     txBuffer[0] = ADDR_SYSVOUT;
     txBuffer[1] = SYS_VOUT_CODE | SYS_VOUT_ENABLE | SYS_VOUT_SEL;
 
-    if(I2C_transfer(ic2, i2cTransaction))
+    if(I2C_transfer(i2c, &i2cTransaction))
         Display_printf(display, 0, 0, "FC Register 0x%02x: 0x%02x\n", txBuffer[0], reg[i]);
 
     /* Deinitialized I2C */
