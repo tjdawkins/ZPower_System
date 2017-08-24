@@ -119,9 +119,26 @@ void *mainThread(void *arg0)
         sleep(1);
     }
 
+
+    // Init Function Prototype
+
+    i2cTransaction.slaveAddress = BQ25120_I2C_ADDR;
+    i2cTransaction.writeBuf = txBuffer;
+    i2cTransaction.writeCount = 2;
+    i2cTransaction.readBuf = rxBuffer;
+    i2cTransaction.readCount = 1;
+
+    //txBuffer[0] = ADDR_FASTCHGCTRL;
+    //txBuffer[1] = FC_CHRG_ENABLE | FC_HIGHZ_DISABLE | FC_ICHRG_CODE | FC_ICHRG_RANGE | FAULT_BAT_OCP_M;
+
+    txBuffer[0] = ADDR_SYSVOUT;
+    txBuffer[1] = SYS_VOUT_CODE | SYS_VOUT_ENABLE | SYS_VOUT_SEL;
+
+    if(I2C_transfer(ic2, i2cTransaction))
+        Display_printf(display, 0, 0, "FC Register 0x%02x: 0x%02x\n", txBuffer[0], reg[i]);
+
     /* Deinitialized I2C */
     I2C_close(i2c);
     Display_printf(display, 0, 0, "I2C closed!\n");
-
     return (NULL);
 }
