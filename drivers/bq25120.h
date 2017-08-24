@@ -10,7 +10,14 @@
 #ifndef DRIVERS_BQ25120_H_
 #define DRIVERS_BQ25120_H_
 
+// TODO: Pin mapping
+#define BQ25120_PIN_CD      Board_DIO0
+#define BQ25120_PIN_INT     Board_DIO12
+#define BQ25120_PIN_RESET   Board_DIO15
+#define BQ25120_PIN_LSCTRL  Board_DIO21
 
+
+// I2C Interface
 #define BQ25120_I2C_ADDR 0x6A
 #define BQ25120_NUM_REGS 12
 
@@ -155,5 +162,13 @@
  * VIN_DPM and Timers
  */
 
+
+/*
+ * Initialize Register
+ *
+ * Write initial register initialize state
+ *
+ */
+int BQ25120_init();
 
 #endif /* DRIVERS_BQ25120_H_ */
