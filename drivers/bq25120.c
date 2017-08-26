@@ -14,12 +14,23 @@
 #include <ti/drivers/GPIO.h>
 #include <ti/drivers/I2C.h>
 #include <ti/display/Display.h>
+
 #include <drivers/bq25120.h>
 
 /* Example/Board Header files
  * - MAP PINS FROM CC2640R2_LAUNCHXL.h
  *  */
 #include "Board.h"
+
+/*
+ * Default Value Array
+ *
+ */
+uint8_t default_reg_val[BQ25120_NUM_REGS] = {SM_DEFAULT, FM_DEFAULT, FM_DEFAULT, FC_DEFAULT, ITERM_DEFAULT,
+                   VBREG_DEFAULT, SYS_DEFAULT, LSLDO_DEFAULT, PB_DEFAULT, INLIMBUVLO_DEFAULT,
+                   VBMOM_DEFAULT, VINDPM_DEFAULT};
+
+
 
 int BQ25120_init() {
 

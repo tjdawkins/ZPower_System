@@ -23,7 +23,7 @@
 
 // Define Memory Addresses
 #define ADDR_STATUS_SHIP_MODE   0x00
-#define ADDR_FAULT              0x01
+#define ADDR_FM                 0x01
 #define ADDR_TSCTRL             0x02
 #define ADDR_FASTCHGCTRL        0x03
 #define ADDR_TERMPRECHG_I2C     0x04
@@ -186,16 +186,6 @@
  */
 
 #define VINDPM_DEFAULT      0x4A
-
-
-/*
- * Default Value Array
- *
- */
-
-uint8_t default_reg_val = {SM_DEFAULT, FAULT_DEFAULT, FM_DEFAULT, FC_DEFAULT, ITERM_DEFAULT,
-                            VBREG_DEFAULT, SYS_DEFAULT, LSLDO_DEFAULT, PB_DEFAULT, INLIMBUVLO_DEFAULT,
-                            VBMOM_DEFAULT, VINDPM_DEFAULT};
 
 /*
  * Initialize Register
