@@ -86,22 +86,23 @@ int BQ25120_init() {
     i2cTransaction.readBuf = rxBuffer;
     i2cTransaction.readCount = 1;
 
-    //txBuffer[0] = ADDR_FASTCHGCTRL;
-    //txBuffer[1] = FC_CHRG_ENABLE | FC_HIGHZ_DISABLE | FC_ICHRG_CODE | FC_ICHRG_RANGE | FAULT_BAT_OCP_M;
 
+    for ( i = 0; i < BQ25120_NUM_REGS; i++){
+        txBuffer[0] = i;
+        txBuffer[1] = default_reg_val[i];
+        if(I2C_transfer(i2c, &i2cTransaction)){
+            // Store register values and print out to UART
+            reg[i] = rxBuffer[0];
+            Display_printf(display, 0, 0, "Write register 0x%02x: 0x%02x\n", i, txBuffer[i]);
 
-    // TODO: Write all registers values
-
-
-    txBuffer[0] = ADDR_SYSVOUT;
-    txBuffer[1] = SYS_VOUT_CODE | SYS_VOUT_ENABLE | SYS_VOUT_SEL;
-
-    if(I2C_transfer(i2c, &i2cTransaction)) {
-        Display_printf(display, 0, 0, "FC Register 0x%02x: 0x%02x\n", txBuffer[0], rxBuffer[1]);
-    } else {
-        Display_printf(display, 0, 0, "Failed to write initial value to register. REG 0x%02x: 0x%02x\n",txBuffer[0], reg[i]);
-        return -1;
+        }
+        else {
+            Display_printf(display, 0, 0, "Failed to write initial value to register. REG 0x%02x: 0x%02x\n",txBuffer[0], reg[i]);
+            return -1;
+        }
     }
+
+
 
     /* Deinitialized I2C */
     I2C_close(i2c);

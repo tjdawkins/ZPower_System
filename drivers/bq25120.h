@@ -48,7 +48,27 @@
 #define FAULT_BAT_OCP_M         0x01
 
 /*
- * Fast Charge Control Register
+ * Ship Mode Control Register 0x00h
+ *
+ */
+#define SM_DEFAULT              0x00
+
+/*
+ * Faults Mask Register 0x01h
+ *
+ */
+#define FM_DEFAULT              0x01
+
+
+/*
+ * TS Control and Faults Mask Register 0x02
+ *
+ */
+#define TS_DEFAULT              0x88
+
+
+/*
+ * Fast Charge Control Register 0x03
  * ICHRG_RANGE = 0:
  * ICHRG = 5 mA + ICHRG_CODE * 1 mA
  * ICHRG_RANGE = 1:
@@ -57,15 +77,15 @@
  * Packet Data:
  * FC_ICHRG_RANG | FC_ICHR_CODE | FC_CHRG_X | FC_HIGHZ_X
  */
-#define FC_ICHRG_RANGE     0x00 // Range 1
-#define FC_ICHRG_CODE      0x08 // 5mA + 2mA (Zpower 6.8 mA)
-#define FC_CHRG_ENABLE     0x00
-#define FC_CHRG_DISABLE    0x02
-#define FC_HIGHZ_ENABLE    0x01
-#define FC_HIGHZ_DISABLE   0x00
-
+#define FC_ICHRG_RANGE          0x00 // Range 1
+#define FC_ICHRG_CODE           0x08 // 5mA + 2mA (Zpower 6.8 mA)
+#define FC_CHRG_ENABLE          0x00
+#define FC_CHRG_DISABLE         0x02
+#define FC_HIGHZ_ENABLE         0x01
+#define FC_HIGHZ_DISABLE        0x00
+#define FC_DEFAULT              FC_CHRG_ENABLE | FC_HIGHZ_DISABLE | FC_ICHRG_CODE | FC_ICHRG_RANGE
 /*
- * Termination/Precharge and I2C Regs
+ * Termination/Precharge and I2C Regs 0x04
  * TERM_RANGE = 0:
  * ITERM = 500 uA + ITERM_CODE * 500 uA
  * ICHRG_RANGE = 1:
@@ -79,16 +99,17 @@
 #define ITERM_TERM_ENABLE     0x02
 #define ITERM_TERM_DISABLE    0x00
 #define ITERM_BIT_0           0x00
+#define ITERM_DEFAULT         ITERM_ICHRG_CODE | ITERM_ICHRG_RANGE | ITERM_TERM_ENABLE | ITERM_BIT_0
 
 /*
- *  Battery Regulation
+ *  Battery Regulation        0x05
  *
  *  VBATREG = 3.6V + VBREG_CODE * 10 mV
  */
-#define VBREG_CODE              0x08 // 3.6 V + 40 mV (ZPower 4V)
-
+#define VBREG_CODE            0x08 // 3.6 V + 40 mV (ZPower 4V)
+#define VBREG_DEFAULT         0x08
 /*
- * SYS Vout Control Registers
+ * SYS Vout Control Registers 0x06
  *
  * SYS_SEL: 00 (1.1 V - 1.2 V)
  *          01 (1.3 V - 2.8 V) => 1.3 V + SYS_VOUT_CODE * 100 mV
@@ -97,13 +118,13 @@
  * SYS_VOUT_CODE B4:B1
  *
  */
-#define SYS_VOUT_ENABLE     0x80
-#define SYS_VOUT_DISABLE    0x00
-#define SYS_VOUT_SEL        0x60 // 1.8 V
-#define SYS_VOUT_CODE       0x1D // 1.8 V + 1.5 V = 3.3 V
-
+#define SYS_ENABLE            0x80
+#define SYS_DISABLE           0x00
+#define SYS_SEL               0x60 // 1.8 V
+#define SYS_CODE              0x1D // 1.8 V + 1.5 V = 3.3 V
+#define SYS_DEFAULT           SYS_ENABLE |SYS_SEL | SYS_CODE
 /*
- *  Load Switch and LDO Control Register
+ *  Load Switch and LDO Control Register 0x07
  *
  *  EN_LS_LDO       7       Enable
  *  LS_LDO_V        6:2     Voltage
@@ -119,15 +140,17 @@
 #define LSLDO_DISABLE       0x00
 #define LSLDO_CODE          0x7A // Default change if necessary
 #define LSLDO_MR_VIN        0x00 // TODO: Use this function?
+#define LSLDO_DEFAULT       LSLDO_ENABLE | LSLDO_CODE | LSLDO_MR_VIN
+
 
 /*
- * Push Button Control Register
+ * Push Button Control Register 0x08
  */
-
+#define PB_DEFAULT          0x68
 
 
 /*
- * INLIM and Battery UVLO Control Register
+ * INLIM and Battery UVLO Control Register 0x09
  *
  * INLIMBUVLO_x
  *
@@ -146,22 +169,33 @@
 
 #define INLIMBUVLO_RESET    0x00
 #define INLIMBUVLO_INLIM    0x08 // 50 mA default
-#define INLIMBUBLO_BUVLO    0x02 // 3V default
-
+#define INLIMBUVLO_BUVLO    0x02 // 3V default
+#define INLIMBUVLO_DEFAULT  INLIMBUVLO_BUVLO | INLIMBUVLO_INLIM | INLIMBUVLO_RESET
 /*
- * Voltage Based Battery Monitor
+ * Voltage Based Battery Monitor 0x0A
  * VBMOM_x
  *
  * VBMON_READ       Write 1 to initiate a read
  *                  See data sheet Table 23
  */
 
+#define VBMOM_DEFAULT       0x00
+
+/*
+ * VIN_DPM and Timers       0x0B
+ */
+
+#define VINDPM_DEFAULT      0x4A
 
 
 /*
- * VIN_DPM and Timers
+ * Default Value Array
+ *
  */
 
+uint8_t default_reg_val = {SM_DEFAULT, FAULT_DEFAULT, FM_DEFAULT, FC_DEFAULT, ITERM_DEFAULT,
+                            VBREG_DEFAULT, SYS_DEFAULT, LSLDO_DEFAULT, PB_DEFAULT, INLIMBUVLO_DEFAULT,
+                            VBMOM_DEFAULT, VINDPM_DEFAULT};
 
 /*
  * Initialize Register
