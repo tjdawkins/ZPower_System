@@ -48,9 +48,6 @@
 
 #define TASKSTACKSIZE       640
 
-#define TMP007_DIE_TEMP     0x0001  /* Die Temp Result Register */
-#define TMP007_OBJ_TEMP     0x0003  /* Object Temp Result Register */
-
 //static Display_Handle display;
 
 /*
@@ -60,8 +57,8 @@ void *mainThread(void *arg0) {
 
     /* Call driver init functions */
     Display_init();
-    //GPIO_init();
-    //I2C_init();
+    GPIO_init();
+    I2C_init();
 
     /*/ Open the HOST display for output
     display = Display_open(Display_Type_UART, NULL);

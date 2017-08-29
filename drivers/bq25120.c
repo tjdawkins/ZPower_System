@@ -27,20 +27,25 @@
  *
  */
 uint8_t default_reg_val[BQ25120_NUM_REGS] = {SM_DEFAULT, FM_DEFAULT, FM_DEFAULT, FC_DEFAULT, ITERM_DEFAULT,
-                   VBREG_DEFAULT, SYS_DEFAULT, LSLDO_DEFAULT, PB_DEFAULT, INLIMBUVLO_DEFAULT,
-                   VBMOM_DEFAULT, VINDPM_DEFAULT};
+                                             VBREG_DEFAULT, SYS_DEFAULT, LSLDO_DEFAULT, PB_DEFAULT, INLIMBUVLO_DEFAULT,
+                                             VBMOM_DEFAULT, VINDPM_DEFAULT};
 
 
 
 int BQ25120_init() {
 
     Display_Handle display;
-    I2C_init();
+    //I2C_init();
+    //GPIO_init();
 
     display = Display_open(Display_Type_UART, NULL);
     if (display == NULL) {
         while (1);
     }
+
+    //GPIO_write(BQ25120_PIN_CD,0x00);
+    //GPIO_write(BQ25120_PIN_LSCTRL,0x01);
+
 
     unsigned int    i;
     uint8_t         reg[BQ25120_NUM_REGS];
@@ -54,6 +59,8 @@ int BQ25120_init() {
     GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON);
     Display_printf(display, 0, 0, "Starting BQ25120_init() function\n");
 
+
+
     /* Create I2C for usage */
     I2C_Params_init(&i2cParams);
     i2cParams.bitRate = I2C_400kHz;
@@ -62,7 +69,7 @@ int BQ25120_init() {
     i2c = I2C_open(Board_I2C_TMP, &i2cParams);
     if (i2c == NULL) {
         Display_printf(display, 0, 0, "Error Initializing I2C\n");
-        return -1;
+        return 0;
     } else {
         Display_printf(display, 0, 0, "I2C Initialized!\n");
     }
@@ -85,7 +92,8 @@ int BQ25120_init() {
         }
         else {
             Display_printf(display, 0, 0, "I2C Bus fault\n");
-            return -1;
+            I2C_close(i2c);
+            return 0;
         }
         txBuffer[0]++; // Next Register
     }
@@ -99,6 +107,7 @@ int BQ25120_init() {
 
 
     for ( i = 0; i < BQ25120_NUM_REGS; i++){
+        usleep(1000);
         txBuffer[0] = i;
         txBuffer[1] = default_reg_val[i];
         if(I2C_transfer(i2c, &i2cTransaction)){
@@ -108,8 +117,9 @@ int BQ25120_init() {
 
         }
         else {
-            Display_printf(display, 0, 0, "Failed to write initial value to register. REG 0x%02x: 0x%02x\n",txBuffer[0], reg[i]);
-            return -1;
+            Display_printf(display, 0, 0, "Failed to write initial value to register. REG 0x%02x: 0x%02x (0x%02x)\n",txBuffer[0], txBuffer[1], reg[i]);
+            I2C_close(i2c);
+            return 0;
         }
     }
 
