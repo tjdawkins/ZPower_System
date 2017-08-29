@@ -348,12 +348,17 @@ const uint_least8_t Display_count = 0;
  */
 GPIO_PinConfig gpioPinConfigs[] = {
     /* Input pins */
-    GPIOCC26XX_DIO_13 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,  /* Button 0 */
-    GPIOCC26XX_DIO_14 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,  /* Button 1 */
+    GPIOCC26XX_DIO_13 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,        /* Button 0 */
+    GPIOCC26XX_DIO_14 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_RISING,        /* Button 1 */
+    GPIOCC26XX_DIO_12 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_BOTH_EDGES,    // INT
+    GPIOCC26XX_DIO_15 | GPIO_CFG_IN_PU | GPIO_CFG_IN_INT_FALLING,       // RESET
 
     /* Output pins */
     GPIOCC26XX_DIO_07 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,  /* Green LED */
     GPIOCC26XX_DIO_06 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,  /* Red LED */
+    GPIOCC26XX_DIO_00 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,  // CD
+    GPIOCC26XX_DIO_21 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_LOW,  // LSCTRL
+
 
     /* SPI Flash CSN */
     GPIOCC26XX_DIO_20 | GPIO_CFG_OUT_STD | GPIO_CFG_OUT_STR_HIGH | GPIO_CFG_OUT_HIGH,
@@ -369,6 +374,8 @@ GPIO_PinConfig gpioPinConfigs[] = {
 GPIO_CallbackFxn gpioCallbackFunctions[] = {
     NULL,  /* Button 0 */
     NULL,  /* Button 1 */
+    NULL,  // INT
+    NULL,  // RESET
 };
 
 const GPIOCC26XX_Config GPIOCC26XX_config = {
