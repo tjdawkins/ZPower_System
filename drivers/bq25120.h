@@ -127,7 +127,7 @@
  *  Load Switch and LDO Control Register 0x07
  *
  *  EN_LS_LDO       7       Enable
- *  LS_LDO_V        6:2     Voltage
+ *  LS_LDO_V        6:2     Voltage (0)010 10(00)
  *      VLSLDO = 0.8 V + LS_LDOCODE * 100 mV
  *      VLSLDO > 3.3 => passthrough: VLSLDO = VINLS - VDROPOUT
  *      NOTE: To change VLSLDO LSCTRL and EN_LS_LDO must be disabled
@@ -138,7 +138,7 @@
 
 #define LSLDO_ENABLE        0x80
 #define LSLDO_DISABLE       0x00
-#define LSLDO_CODE          0x7A // Default change if necessary
+#define LSLDO_CODE          0x28 // Default change if necessary 0x64 = 3.3 V
 #define LSLDO_MR_VIN        0x00 // TODO: Use this function?
 #define LSLDO_DEFAULT       LSLDO_ENABLE | LSLDO_CODE | LSLDO_MR_VIN
 
@@ -187,6 +187,8 @@
 
 #define VINDPM_DEFAULT      0x4A
 
+Display_Handle display;
+
 /*
  * Initialize Register
  *
@@ -194,5 +196,16 @@
  *
  */
 int BQ25120_init();
+
+/*
+ * Read all registers
+ */
+int BQ25120_read_regs(uint8_t*);
+
+/*
+ *  Write default register
+ */
+int BQ25120_write_default_regs();
+
 
 #endif /* DRIVERS_BQ25120_H_ */

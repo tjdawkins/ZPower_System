@@ -26,15 +26,16 @@
  * Default Value Array
  *
  */
-uint8_t default_reg_val[BQ25120_NUM_REGS] = {SM_DEFAULT, FM_DEFAULT, FM_DEFAULT, FC_DEFAULT, ITERM_DEFAULT,
+uint8_t default_reg_val[BQ25120_NUM_REGS] = {SM_DEFAULT, FM_DEFAULT, TS_DEFAULT, FC_DEFAULT, ITERM_DEFAULT,
                                              VBREG_DEFAULT, SYS_DEFAULT, LSLDO_DEFAULT, PB_DEFAULT, INLIMBUVLO_DEFAULT,
                                              VBMOM_DEFAULT, VINDPM_DEFAULT};
 
-
+uint8_t regs[BQ25120_NUM_REGS] = {0};
 
 int BQ25120_init() {
 
-    Display_Handle display;
+
+    //Display_Handle display;
     //I2C_init();
     //GPIO_init();
 
@@ -46,20 +47,36 @@ int BQ25120_init() {
     //GPIO_write(BQ25120_PIN_CD,0x00);
     //GPIO_write(BQ25120_PIN_LSCTRL,0x01);
 
-
-    unsigned int    i;
-    uint8_t         reg[BQ25120_NUM_REGS];
-    uint8_t         txBuffer[2];
-    uint8_t         rxBuffer[1];
-    I2C_Handle      i2c;
-    I2C_Params      i2cParams;
-    I2C_Transaction i2cTransaction;
-
     // Light up the Red LED and print message to UART
     GPIO_write(Board_GPIO_LED0, Board_GPIO_LED_ON);
     Display_printf(display, 0, 0, "Starting BQ25120_init() function\n");
 
+    // Read all registers
+    BQ25120_read_regs(regs);
 
+    // Write default values to registers
+    BQ25120_write_default_regs();
+
+    Display_close(display);
+
+    return 1;
+
+}
+
+int BQ25120_read_regs(uint8_t* regs) {
+
+    /*Display_Handle display;
+    display = Display_open(Display_Type_UART, NULL);
+    if (display == NULL) {
+        while (1);
+    }*/
+
+    unsigned int    i;
+    uint8_t         txBuffer[1];
+    uint8_t         rxBuffer[1];
+    I2C_Handle      i2c;
+    I2C_Params      i2cParams;
+    I2C_Transaction i2cTransaction;
 
     /* Create I2C for usage */
     I2C_Params_init(&i2cParams);
@@ -68,12 +85,16 @@ int BQ25120_init() {
     // Open I2C Connection
     i2c = I2C_open(Board_I2C_TMP, &i2cParams);
     if (i2c == NULL) {
-        Display_printf(display, 0, 0, "Error Initializing I2C\n");
+        Display_printf(display, 0, 0, "Error Initializing I2C in _read_regs()\n");
         return 0;
     } else {
-        Display_printf(display, 0, 0, "I2C Initialized!\n");
+        Display_printf(display, 0, 0, "I2C Initialized in _read_regs()!\n");
     }
 
+
+
+
+    // Start with address 0x00
     txBuffer[0] = 0x00;
     // Set up I2C Transaction for BQ25120 IC to read all registers
     i2cTransaction.slaveAddress = BQ25120_I2C_ADDR;
@@ -87,16 +108,58 @@ int BQ25120_init() {
     for (i = 0; i < BQ25120_NUM_REGS; i++) {
         if (I2C_transfer(i2c, &i2cTransaction)) {
             // Store register values and print out to UART
-            reg[i] = rxBuffer[0];
-            Display_printf(display, 0, 0, "Register 0x%02x: 0x%02x\n", i, reg[i]);
+            regs[i] = rxBuffer[0];
+            Display_printf(display, 0, 0, "Register 0x%02x: 0x%02x\n", i, regs[i]);
         }
         else {
             Display_printf(display, 0, 0, "I2C Bus fault\n");
             I2C_close(i2c);
             return 0;
         }
+
         txBuffer[0]++; // Next Register
     }
+
+    // Close the I2C connection
+    I2C_close(i2c);
+    Display_printf(display, 0, 0, "I2C closed!\n");
+    //Display_close(display);
+    return 1;
+
+}
+
+
+int BQ25120_write_default_regs() {
+
+    /*Display_Handle display;
+    display = Display_open(Display_Type_UART, NULL);
+    if (display == NULL) {
+        while (1);
+    }*/
+
+    unsigned int    i;
+    uint8_t         txBuffer[2];
+    uint8_t         rxBuffer[1];
+    I2C_Handle      i2c;
+    I2C_Params      i2cParams;
+    I2C_Transaction i2cTransaction;
+
+    // Debug
+    uint8_t reg[BQ25120_NUM_REGS] = {0};
+
+    /* Create I2C for usage */
+    I2C_Params_init(&i2cParams);
+    i2cParams.bitRate = I2C_400kHz;
+
+    // Open I2C Connection
+    i2c = I2C_open(Board_I2C_TMP, &i2cParams);
+    if (i2c == NULL) {
+        Display_printf(display, 0, 0, "Error Initializing I2C in _read_regs()\n");
+        return 0;
+    } else {
+        Display_printf(display, 0, 0, "I2C Initialized in _read_regs()!\n");
+    }
+
 
     // Set up write initial state transaction
     i2cTransaction.slaveAddress = BQ25120_I2C_ADDR;
@@ -105,15 +168,16 @@ int BQ25120_init() {
     i2cTransaction.readBuf = rxBuffer;
     i2cTransaction.readCount = 1;
 
-
     for ( i = 0; i < BQ25120_NUM_REGS; i++){
         usleep(1000);
         txBuffer[0] = i;
         txBuffer[1] = default_reg_val[i];
         if(I2C_transfer(i2c, &i2cTransaction)){
+
             // Store register values and print out to UART
             reg[i] = rxBuffer[0];
-            Display_printf(display, 0, 0, "Write register 0x%02x: 0x%02x\n", i, txBuffer[i]);
+
+            Display_printf(display, 0, 0, "Write register 0x%02x: 0x%02x (0x%02x)\n", i, txBuffer[i],reg[i]);
 
         }
         else {
@@ -123,22 +187,11 @@ int BQ25120_init() {
         }
     }
 
-
-
     /* Deinitialized I2C */
     I2C_close(i2c);
     Display_printf(display, 0, 0, "I2C closed!\n");
+    //Display_close(display);
 
     return 1;
 
 }
-
-
-
-
-
-
-
-
-
-

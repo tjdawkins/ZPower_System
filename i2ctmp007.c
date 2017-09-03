@@ -49,6 +49,12 @@
 #define TASKSTACKSIZE       640
 
 //static Display_Handle display;
+void btn0_callback(uint_least8_t);
+void btn01_callback(uint_least8_t);
+
+// Display Handle
+//Display_Handle display;
+
 
 /*
  *  ======== mainThread ========
@@ -60,14 +66,86 @@ void *mainThread(void *arg0) {
     GPIO_init();
     I2C_init();
 
-    /*/ Open the HOST display for output
-    display = Display_open(Display_Type_UART, NULL);
-    if (display == NULL) {
-        while (1);
-    }*/
+    GPIO_setCallback(Board_GPIO_BUTTON0, btn01_callback);
+    GPIO_enableInt(Board_GPIO_BUTTON0);
 
     BQ25120_init();
 
     return(NULL);
+
+}
+
+void btn01_callback(uint_least8_t index) {
+
+    GPIO_clearInt(Board_GPIO_BUTTON0);
+    //BQ25120_write_default_regs();
+
+    return NULL;
+}
+
+
+void btn0_callback(uint_least8_t index) {
+
+    Display_init();
+    Display_Handle disp;
+    disp = Display_open(Display_Type_UART, NULL);
+    if (disp == NULL) {
+        while (1);
+    }
+
+    Display_doPrintf(disp,0,0,"InCallback!!!\n");
+    GPIO_clearInt(Board_GPIO_BUTTON0);
+
+    uint8_t regs[BQ25120_NUM_REGS];
+
+    unsigned int    i;
+    uint8_t         txBuffer[1];
+    uint8_t         rxBuffer[1];
+    I2C_Handle      i2c;
+    I2C_Params      i2cParams;
+    I2C_Transaction i2cTransaction;
+
+    /* Create I2C for usage */
+    I2C_Params_init(&i2cParams);
+    i2cParams.bitRate = I2C_400kHz;
+
+    Display_clear(disp);
+    // Open I2C Connection
+    i2c = I2C_open(Board_I2C_TMP, &i2cParams);
+    if (i2c == NULL) {
+        Display_printf(disp, 0, 0, "Error Initializing I2C in Callback\n");
+        return 0;
+    } else {
+        Display_printf(disp, 0, 0, "I2C Initialized in _read_regs()!\n");
+    }
+
+    // Start with address 0x00
+    txBuffer[0] = 0x00;
+    // Set up I2C Transaction for BQ25120 IC to read all registers
+    i2cTransaction.slaveAddress = BQ25120_I2C_ADDR;
+    i2cTransaction.writeBuf = txBuffer;
+    i2cTransaction.writeCount = 1;
+    i2cTransaction.readBuf = rxBuffer;
+    i2cTransaction.readCount = 1;
+
+    // Read out all registers
+    for (i = 0; i < BQ25120_NUM_REGS; i++) {
+        if (I2C_transfer(i2c, &i2cTransaction)) {
+            // Store register values and print out to UART
+            regs[i] = rxBuffer[0];
+            Display_printf(disp, 0, 0, "Register 0x%02x: 0x%02x\n", i, regs[i]);
+        }
+        else {
+            Display_printf(disp, 0, 0, "I2C Bus fault\n");
+            I2C_close(i2c);
+            return 0;
+        }
+
+        txBuffer[0]++; // Next Register
+    }
+
+    // Close the I2C connection
+    I2C_close(i2c);
+    Display_printf(disp, 0, 0, "I2C closed!\n");
 
 }
